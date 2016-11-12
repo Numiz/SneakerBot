@@ -3,3 +3,4 @@
 *pyc
 /userinfo.json
 node_modules/
+.vscode
