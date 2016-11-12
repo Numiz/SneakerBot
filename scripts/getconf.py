@@ -1,8 +1,7 @@
-import json
-with open("userinfo.json") as conffile:
-    userinfo = json.load(conffile)
+from makeinfo import get_info
 
-# No real better way...
+userinfo = get_info()
+
 card_cvv = userinfo["card_cvv"]
 card_exp_month = userinfo["card_exp_month"]
 card_exp_year = userinfo["card_exp_year"]
@@ -30,5 +29,3 @@ billing_state_abbrv = userinfo["billing_state_abbrv"]
 billing_zip = userinfo["billing_zip"]
 billing_country = userinfo["billing_country"]
 billing_country_abbrv = userinfo["billing_country_abbrv"]
-
-
