@@ -7,6 +7,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 from bs4 import BeautifulSoup as bs
 from getconf import *
 from atclibs import *
+from selenium import webdriver
 
 """
 NOTE:
@@ -16,11 +17,16 @@ billAddressType changes from 'different' to 'new' possibly depending on if shipp
 base_url = 'http://www.footlocker.com'
 
 # User input
+
+email = ''
+password = ''
 use_early_link = True
-early_link = "http://www.footlocker.com/product/model:175563/sku:11881010/nike-roshe-one-mens/black/grey/?cm="
+early_link = 'http://www.footlocker.com/product/model:152915/sku:04775123/jordan-retro-7-mens/usa/white/blue/'
 use_keyword = False
-size = "6.5"
+product_id = ''
+size = '9.5'
 size = footsites_parse_size(size)
+
 
 def add_to_cart(url):
     response = session.get(url)
@@ -55,136 +61,27 @@ def add_to_cart(url):
         'Accept-Encoding': 'gzip, deflate',
     }
 
-    response = session.post(base_url + '/catalog/miniAddToCart.cfm?secure=0&', headers=headers, data=payload)
-    soup = bs(response.text, 'html.parser')
-    error = soup.find('span', {'class' : 'error'})
-    
-    return (error is None)
+    session.post(base_url + '/catalog/miniAddToCart.cfm?secure=0&', headers=headers, data=payload)
+
 
 def checkout():
-    response = session.get('https://www.footlocker.com/checkout/?uri=checkout')
-    soup = bs(response.text, 'html.parser')
-
-    device_id = soup.find('input', {'id': 'bb_device_id'})['value']
-    hbg = soup.find('input', {'id': 'hbg'})['value']
-    TID = soup.find('form', {'id': 'emailVerificationForm'})['action']
-    request_key = soup.find('input', {'id': 'requestKey'})['value']
-
-    payload = {
-        'CPCOrSourceCode':'',
-        'CardCCV':card_cvv,
-        'CardExpireDateMM':card_exp_month,
-        'CardExpireDateYY':card_exp_year,
-        'CardNumber':card_number,
-        'addressBookEnabled': 'true',
-        'bb_device_id': device_id,
-        'bdday': '01',
-        'bdmonth': '01',
-        'bdyear': '1900',
-        'billAPOFPOCountry': 'US',
-        'billAPOFPOPostalCode':'',
-        'billAPOFPORegion':'',
-        'billAPOFPOState':'',
-        'billAddress1': shipping_address_1,
-        'billAddress2':shipping_address_2,
-        'billAddressInputType': 'single',
-        'billAddressType': 'new',
-        'billCity': shipping_city,
-        'billConfirmEmail': email,
-        'billCountry': 'US',
-        'billEmailAddress':email,
-        'billFirstName': first_name,
-        'billHomePhone': phone_number,
-        'billLastName': last_name,
-        'billMeLaterStage': 'NotInitialized',
-        'billMobilePhone':'',
-        'billMyAddressBookIndex': '-1',
-        'billPaneShipToBillingAddress': 'true',
-        'billPostalCode': shipping_zip,
-        'billProvince':'',
-        'billState': shipping_state,
-        'bmlConsent': 'Yes',
-        'fieldCount': '1',
-        'giftCardCode_1':'',
-        'giftCardPin_1':'',
-        'hbg': hbg,
-        'loginHeaderEmailAddress': email,
-        'loginHeaderPassword': '',
-        'loginPaneConfirmNewEmailAddress':'',
-        'loginPaneEmailAddress':'',
-        'loginPaneNewEmailAddress':'',
-        'loginPanePassword':'',
-        'orderReviewPaneBillSubscribeEmail': 'true',
-        'payMethodPaneCVV':'',
-        'payMethodPaneCardNumber':'',
-        'payMethodPaneCardType':'',
-        'payMethodPaneConfirmCardNumber':'',
-        'payMethodPaneExpireMonth':'',
-        'payMethodPaneExpireYear':'',
-        'payMethodPaneStoredCCCVV':'',
-        'payMethodPaneStoredCCExpireMonth':'',
-        'payMethodPaneStoredCCExpireYear':'',
-        'payMethodPaneStoredType':'',
-        'promoType':'',
-        'requestKey': request_key,
-        'shipAPOFPOCountry': 'US',
-        'shipAPOFPOPostalCode':'',
-        'shipAPOFPORegion':'',
-        'shipAPOFPOState':'',
-        'shipAddress1':'',
-        'shipAddress2':'',
-        'shipAddressInputType': 'single',
-        'shipAddressType': 'different',
-        'shipCity':'',
-        'shipCountry': 'US',
-        'shipFirstName':'',
-        'shipHomePhone':'',
-        'shipLastName':'',
-        'shipMethodCodeS2S':'',
-        'shipMyAddressBookIndex': '-1',
-        'shipPostalCode':'',
-        'shipProvince':'',
-        'shipState':'',
-        'shipToStore': 'false',
-        'ssn': '1000',
-        'storePickupInputPostalCode':'',
-        'verifiedCheckoutData': {
-            'maxVisitedPane': 'billAddressPane',
-             'updateBillingForBML': 'false',
-            'billMyAddressBookIndex': '-1',
-             'addressNeedsVerification': 'true',
-             'billFirstName': first_name,
-            'billLastName': last_name,
-             'billAddress1': shipping_address_1,
-             'billAddress2': shipping_address_1,
-             'billCity': shipping_city,
-             'billState': shipping_state,
-            'billProvince': '',
-             'billPostalCode': '',
-             'billHomePhone': '',
-             'billMobilePhone': '',
-            'billCountry': 'US',
-             'billEmailAddress': email,
-             'billConfirmEmail': email,
-            'billAddrIsPhysical': 'true',
-             'billSubscribePhone': 'false',
-             'billAbbreviatedAddress': 'false',
-            'shipUpdateDefaultAddress': 'false',
-             'VIPNumber': '',
-            'accountBillAddress': {'billMyAddressBookIndex': '-1'}, 'selectedBillAddress': {},
-            'billMyAddressBook': []
-        }
-    }
-    print(payload)
-    # response = session.post(url, data=payload, headers=headers)
+    # login
+    url = 'http://www.footlocker.com/login/login?secured=false&bv_RR_enabled=false&bv_AA_enabled=false&bv_JS_enabled=true&ignorebv=false&dontRunBV=true'
+    driver.get(url)
+    driver.switch_to.frame(driver.find_element_by_id('loginIFrame'))
+    driver.find_element_by_id('login_email').send_keys(email)
+    driver.find_element_by_id('login_password').send_keys(password)
+    driver.find_element_by_tag_name('button').click()
+    
+    # checkout
+    driver.get('http://www.footlocker.com/shoppingcart/default.cfm?sku=')
+    
 
 
 # Main
-
 tick()
 
-global response
-
+driver = webdriver.Chrome()
 session = requests.Session()
 session.headers.update({
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -202,8 +99,20 @@ if use_early_link:
     url = early_link
 else:
     url = base_url + '/product/sku:{}/'.format(product_id)
-    
-if add_to_cart(url):
-    checkout()
+
+add_to_cart(url)
+checkout()
+
+headers = {
+    'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Encoding':'gzip, deflate, sdch, br',
+    'Accept-Language':'en-US,en;q=0.8',
+    'Cache-Control':'max-age=0',
+    'Connection':'keep-alive',
+    'Cookie':'',
+    'Host':'shop.bdgastore.com',
+    'If-None-Match':'',
+    'Upgrade-Insecure-Requests': '1'
+}
         
 tock()
