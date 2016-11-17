@@ -102,17 +102,5 @@ else:
 
 add_to_cart(url)
 checkout()
-
-headers = {
-    'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    'Accept-Encoding':'gzip, deflate, sdch, br',
-    'Accept-Language':'en-US,en;q=0.8',
-    'Cache-Control':'max-age=0',
-    'Connection':'keep-alive',
-    'Cookie':'',
-    'Host':'shop.bdgastore.com',
-    'If-None-Match':'',
-    'Upgrade-Insecure-Requests': '1'
-}
         
 tock()
